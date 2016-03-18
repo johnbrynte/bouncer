@@ -1,0 +1,15 @@
+body {
+    margin: 0;
+}
+
+canvas {
+    display: block;
+    margin: 20px auto;
+}
+
+.message-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 5px;
+}

@@ -1,0 +1,180 @@
+define([
+    "lib/three",
+    "core/renderer",
+    "core/assets",
+    "physics/constants"
+], function(
+    THREE,
+    renderer,
+    assets,
+    constants
+) {
+
+    var decH = 8;
+    var decAirH = 2;
+    var decRunningH = 6;
+    var accH = 100;
+    var accAirH = 40;
+    var accRunningH = 140;
+    var decV = 4;
+    var maxHSpeed = 50;
+
+    var jumpSpeed = 36;
+    var accJump = 120;
+    var minJumpTime = 0.1;
+    var maxJumpTime = 0.3;
+
+    function Bouncer() {
+        this.pos = {
+            x: 0,
+            y: 0
+        };
+        this.speed = {
+            x: 0,
+            y: 0
+        };
+        this.acc = {
+            x: 0,
+            y: 0
+        };
+        this.jumpDelta = 0;
+        this.jumpActive = false;
+        this.running = false;
+        this.jumping = false;
+        this.onGround = false;
+
+        this.graphic = assets.createRectangle(1, 1, 0xE3ECEC);
+
+        this.lastCollision = null;
+        this.leftCol = null;
+        this.rightCol = null;
+        this.raycaster = new THREE.Raycaster();
+    }
+
+    Bouncer.prototype.setPos = function(x, y) {
+        this.pos.x = x;
+        this.pos.y = y;
+        this.speed.x = 0;
+        this.speed.y = 0;
+    };
+
+    Bouncer.prototype.move = function(x, y) {
+        var acc = accH;
+        if (!this.onGround) {
+            acc = accAirH;
+        } else if (this.running) {
+            acc = accRunningH;
+        }
+        this.applyForce(acc * x, acc * y);
+    };
+
+    Bouncer.prototype.applyForce = function(x, y) {
+        this.acc.x += x;
+        this.acc.y += y;
+    };
+
+    Bouncer.prototype.update = function(d) {
+        this.applyForce(0, constants.gravity);
+
+        if (this.jumping) {
+            this.jumpDelta += d;
+            if (this.jumpActive) {
+                if (this.jumpDelta > maxJumpTime) {
+                    this.jumping = false;
+                } else {
+                    this.applyForce(0, accJump);
+                }
+            } else {
+                if (this.jumpDelta > minJumpTime) {
+                    this.jumping = false;
+                    this.jumpActive = false;
+                } else {
+                    this.applyForce(0, accJump);
+                }
+            }
+        }
+
+        var dec = decH;
+        if (!this.onGround) {
+            dec = decAirH;
+        } else if (this.running) {
+            dec = decRunningH;
+        }
+
+        this.speed.x += this.acc.x * d - this.speed.x * dec * d;
+        this.speed.y += this.acc.y * d - this.speed.y * decV * d;
+        this.pos.x += this.speed.x * d;
+        this.pos.y += this.speed.y * d;
+
+        this.onGround = false;
+        if (!this.jumping) {
+            var pos = new THREE.Vector3(this.pos.x, this.pos.y, 0);
+            this.raycaster.set(pos, new THREE.Vector3(0, -1, 0));
+            var intersects = this.raycaster.intersectObjects(renderer.getChildren(), true);
+            if (intersects.length > 0) {
+                var hit = intersects[0];
+                if (hit.distance <= 0.5) {
+                    this.pos.y = hit.point.y + 0.5;
+                    this.speed.y = 0;
+                    this.onGround = true;
+                }
+                this.lastCollision = {
+                    pos: pos,
+                    hit: hit
+                };
+            } else {
+                if (this.lastCollision) {
+                    if (this.lastCollision.hit.distance < this.lastCollision.pos.distanceTo(pos)) {
+                        console.log("special case");
+                        this.pos.y = this.lastCollision.hit.point.y + 0.5;
+                        this.speed.y = 0;
+                        this.onGround = true;
+                    }
+                }
+                this.lastCollision = null;
+            }
+        }
+
+        if (this.jumping && this.speed.y < 0) {
+            this.jumping = false;
+        }
+
+        this.graphic.position.set(this.pos.x, this.pos.y, 0);
+        // reset acceleration
+        this.acc.x = 0;
+        this.acc.y = 0;
+
+        /*
+        if (v > vel) {
+            vx = vel * vx / v;
+            vy = vel * vy / v;
+        }*/
+    };
+
+    Bouncer.prototype.setRunning = function(bool) {
+        this.running = bool;
+    };
+
+    Bouncer.prototype.jump = function() {
+        if (this.onGround) {
+            this.onGround = false;
+            this.jumping = true;
+            this.jumpActive = true;
+            this.jumpDelta = 0;
+
+            var amount = 0.75 + 0.25 * Math.min(Math.abs(this.speed.x) / 40, 1);
+            this.speed.y = jumpSpeed * amount;
+
+            this.lastCollision = null;
+        }
+    };
+
+    Bouncer.prototype.jumpEnd = function() {
+        if (this.jumpActive) {
+            this.jumpActive = false;
+        }
+    };
+
+    return Bouncer;
+
+});
