@@ -33,7 +33,7 @@ define(["lib/three"], function(THREE) {
         scene = new THREE.Scene();
         camera = new THREE.OrthographicCamera(-self.width / 2, self.width / 2, self.height / 2, -self.height / 2, 1, 1000);
         camera.position.set(0, 3, 10);
-        camera.zoom = 30;
+        camera.zoom = 24;
         camera.updateProjectionMatrix();
     }
 

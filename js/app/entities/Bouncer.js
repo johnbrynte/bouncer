@@ -37,14 +37,16 @@ define([
     var wallMinFallSpeed = 6;
     var minAnimationSpeed = 4;
 
-    var jumpSpeed = 32;
+    var jumpSpeed = 28;
     var accJump = 100;
-    var minJumpTime = 0.1;
+    var minJumpTime = 0.0;
     var maxJumpTime = 0.3;
 
-    var swingTime = 0.8;
+    var swingTime = 1;
     var swingMinTime = 0.4;
+    var swingMinJumpTime = 0.05;
     var swingEndTime = 0.1;
+    var swingLiftAcc = 120; // equal to gravity
 
     var debug = new Debug();
 
@@ -358,14 +360,15 @@ define([
                     ty = 5 * (0.1 + 0.2 * t * t);
                 }
                 var force = 60;
-                this.applyForce(tx * 60 * Math.cos(angle), 120 + ty * 200 * Math.sin(angle));
+                this.applyForce(tx * 60 * Math.cos(angle), swingLiftAcc + ty * 200 * Math.sin(angle));
 
                 var scale;
                 if (active) {
-                    scale = 1.3 * Math.min((0.5 - Math.abs(0.5 - t * t)) * 20, 1);
+                    scale = Math.min((0.5 - Math.abs(0.5 - t * t)) * 120, 1);
                 } else {
                     scale = 1 - Math.pow(this.swingEndTimer / swingEndTime, 2);
                 }
+                scale *= 1.4;
                 this.graphicHammer.scale.set(scale, scale, 1);
                 this.graphicHammer.position.set(Math.cos(angle), Math.sin(angle), 0);
                 this.graphicHammer.rotation.z = angle - Math.PI / 2;
@@ -503,7 +506,7 @@ define([
     };
 
     Bouncer.prototype.swing = function() {
-        if (!this.onGround && !this.swung && !this.swinging && this.speed.y < 0) {
+        if (!this.onGround && !this.swung && !this.swinging && (this.jumpDelta >= swingMinJumpTime || this.speed.y < 0)) {
             var dir = this.flipped ? -1 : 1;
             this.speed.x = 0;
             this.speed.y = 0;
@@ -512,6 +515,11 @@ define([
             this.swingActive = true;
             this.swingTimer = 0;
             this.swingDirection = dir;
+
+            this.jumping = false;
+            this.jumpActive = false;
+            this.wallJumping = false;
+
             this.emitter.enable();
         }
     };

@@ -58,7 +58,7 @@ define([
                 bouncer.swingEnd();
                 break;
             case "action2":
-            case "space":
+            case "up":
                 bouncer.jumpEnd();
                 break;
         }
