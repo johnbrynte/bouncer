@@ -24,7 +24,7 @@ define([
 
     function init() {
         world = new p2.World({
-            gravity: [0, constants.gravity]
+            gravity: [0, 0]
         });
 
         world.on("beginContact", function(event) {

@@ -1,5 +1,5 @@
 define(function() {
     return {
-        gravity: -150
+        gravity: -120
     };
 });

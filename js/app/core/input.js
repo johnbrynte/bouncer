@@ -118,7 +118,7 @@ define(function() {
     }
 
     function update() {
-        //var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
+        var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
 
         var newGamepadEvents = {};
         for (var id = 0; id < gamepads.length; id++) {

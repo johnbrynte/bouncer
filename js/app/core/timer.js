@@ -1,18 +1,21 @@
 define(function() {
 
-    var self = {
-        start: start,
-        stop: stop,
-        onDraw: onDraw,
-        onStep: onStep
-    };
-
     var timestep = 1 / 120;
     var accumulated = 0;
     var prevtime = 0;
     var running = false;
     var stepcallbacks = [];
     var drawcallbacks = [];
+
+    var self = {
+        start: start,
+        stop: stop,
+        onDraw: onDraw,
+        onStep: onStep,
+
+        fixedDeltaTime: timestep,
+        deltaTime: 0
+    };
 
     window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame || function(f) {
         window.setTimeout(f, 1 / 30);
@@ -52,6 +55,7 @@ define(function() {
         if (d > 1 / 4)
             d = 1 / 4;
         accumulated += d;
+        self.deltaTime = d;
         while (accumulated >= timestep) {
             accumulated -= timestep;
 
