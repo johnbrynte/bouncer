@@ -88,7 +88,8 @@ define([
     });
 
     assets.load({
-        "img/bouncer.png": "img"
+        "img/bouncer.png": "img",
+        "img/bouncer_vector.png": "img"
     }, init);
 
     function init() {

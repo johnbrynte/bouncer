@@ -42,7 +42,7 @@ define([
     var minJumpTime = 0.0;
     var maxJumpTime = 0.3;
 
-    var swingTime = 1;
+    var swingTime = 1.2;
     var swingMinTime = 0.4;
     var swingMinJumpTime = 0.05;
     var swingEndTime = 0.1;
@@ -91,7 +91,7 @@ define([
         this.swingDirection = 0;
         this.swingTimer = swingTime;
         this.swingEndTimer = swingEndTime;
-        this.swingingAnimation = [8, 9, 10, 11, 12, 9];
+        this.swingingAnimation = [4, 5, 6, 7, 4, 5, 6];
 
         this.flipped = false;
 
@@ -101,25 +101,31 @@ define([
         //this.physic = new BoxCollider(1, 1);
         //this.graphic = assets.createRectangle(1, 1, 0xE3ECEC);
         //this.graphic = assets.createSprite(1, 1, assets.files["img/bouncer.png"]);
-        this.graphic = assets.createSprite(assets.files["img/bouncer.png"], 1, 1, 8, 8);
+        this.graphic = assets.createSprite(assets.files["img/bouncer_vector.png"], 1.7, 1.7, 64, 64);
         this.skidParticles = assets.createParticleEffect(0, 0);
         this.emitter = this.skidParticles.emitters[0];
         this.emitter.disable();
 
-        this.graphicHammer = assets.createSprite(assets.files["img/bouncer.png"], 1, 1, 8, 8);
-        this.graphicHammer.setTile(6);
+        this.graphicHammer = assets.createSprite(assets.files["img/bouncer_vector.png"], 1.4, 1.4, 64, 64);
+        this.graphicHammer.setTile(3);
         this.graphic.add(this.graphicHammer);
         this.graphicHammer.visible = false;
 
         this.animations = {
-            run: {
-                duration: 1,
+            idle: {
+                duration: 0.6,
                 timer: 0,
                 scale: 1,
-                cycle: [0, 4, 5, 4]
+                cycle: [12, 13, 14, 13]
+            },
+            run: {
+                duration: 0.8,
+                timer: 0,
+                scale: 1,
+                cycle: [8, 9, 10]
             }
         };
-        this.animation = "run";
+        this.animation = "idle";
 
         /*this.physic.onBeginContact(this.beginContact.bind(this));
         this.physic.onEndContact(function(body) {
@@ -130,29 +136,39 @@ define([
         this.leftCol = null;
         this.rightCol = null;
 
+        this.spriteOffset = {
+            x: 0.05,
+            y: 0.15
+        };
+        var bbox = {
+            width: 5 / 8,
+            height: 1
+        };
+        this.bbox = bbox;
+        var offset = 0.05;
+
         this.topCol = new RayCollider({
-            points: [-3 / 8 + 0.05, 0, 2 / 8 - 0.05, 0],
+            points: [-bbox.width / 2 + offset, 0, bbox.width / 2 - offset, 0],
             dir: [0, 1],
-            distance: 0.5 - 1 / 8,
+            distance: bbox.height / 2,
             callback: topCollisionCallback
         });
         this.groundCol = new RayCollider({
-            points: [-3 / 8 + 0.05, 0, 2 / 8 - 0.05, 0],
+            points: [-bbox.width / 2 + offset, 0, bbox.width / 2 - offset, 0],
             dir: [0, -1],
-            distance: 0.5,
-            callback: groundCollisionCallback,
-            //debug: true
+            distance: bbox.height / 2,
+            callback: groundCollisionCallback
         });
         this.rightCol = new RayCollider({
-            points: [0, -0.45, 0, 0.45 - 1 / 8],
+            points: [0, -bbox.height / 2 + offset, 0, bbox.height / 2 - offset],
             dir: [1, 0],
-            distance: 2 / 8,
+            distance: bbox.width / 2,
             callback: rightCollisionCallback
         });
         this.leftCol = new RayCollider({
-            points: [0, -0.45, 0, 0.45 - 1 / 8],
+            points: [0, -bbox.height / 2 + offset, 0, bbox.height / 2 - offset],
             dir: [-1, 0],
-            distance: 3 / 8,
+            distance: bbox.width / 2,
             callback: leftCollisionCallback
         });
 
@@ -183,7 +199,7 @@ define([
 
         function rightCollisionCallback(hit) {
             //if (true || self.speed.x >= 0) {
-            self.pos.x = -2 / 8 + hit[0];
+            self.pos.x = -self.bbox.width / 2 + hit[0];
 
             if (!self.wallSliding && !self.onGround && self.speed.y < -wallMinFallSpeed && self.speed.x > wallStickSpeedLimit) {
                 self.wallSliding = true;
@@ -200,7 +216,7 @@ define([
 
         function leftCollisionCallback(hit) {
             //if (true || self.speed.x <= 0) {
-            self.pos.x = 3 / 8 + hit[0];
+            self.pos.x = self.bbox.width / 2 + hit[0];
 
             if (!self.wallSliding && !self.onGround && self.speed.y < -wallMinFallSpeed && -self.speed.x > wallStickSpeedLimit) {
                 self.wallSliding = true;
@@ -350,17 +366,20 @@ define([
                 if (this.swingDirection > 0) {
                     angle = Math.PI * 3 / 4 - (2 * Math.PI * 6.5 / 4) * t;
                 } else {
-                    angle = Math.PI * 1 / 4 + (2 * Math.PI * 6.5 / 4) * t;
+                    angle = (2 * Math.PI * 6.5 / 4) * t;
                 }
                 if (active) {
-                    tx = (0.7 + 0.3 * t);
+                    tx = 1.5 * t * t;
                     ty = (0.1 + 0.9 * t * t);
                 } else {
                     tx = 2 * (0.7 + 0.3 * t);
                     ty = 5 * (0.1 + 0.2 * t * t);
                 }
-                var force = 60;
-                this.applyForce(tx * 60 * Math.cos(angle), swingLiftAcc + ty * 200 * Math.sin(angle));
+                if (active) {
+                    this.applyForce(tx * 60 * Math.cos(angle), swingLiftAcc - 5 - t * 20 + ty * 300 * Math.sin(angle));
+                } else {
+                    this.applyForce(tx * 60 * Math.cos(angle), swingLiftAcc + ty * 200 * Math.sin(angle));
+                }
 
                 var scale;
                 if (active) {
@@ -368,13 +387,13 @@ define([
                 } else {
                     scale = 1 - Math.pow(this.swingEndTimer / swingEndTime, 2);
                 }
-                scale *= 1.4;
+                scale = Math.max(scale, 0.01);
                 this.graphicHammer.scale.set(scale, scale, 1);
-                this.graphicHammer.position.set(Math.cos(angle), Math.sin(angle), 0);
+                this.graphicHammer.position.set(Math.cos(angle) * 0.8, Math.sin(angle) * 0.8, 0);
                 this.graphicHammer.rotation.z = angle - Math.PI / 2;
                 this.graphicHammer.visible = true;
 
-                this.emitter.position.value = this.emitter.position.value.set(this.pos.x + 1.3 * Math.cos(angle), this.pos.y + 1.3 * Math.sin(angle), 0);
+                this.emitter.position.value = this.emitter.position.value.set(this.pos.x + 2 * scale * Math.cos(angle), this.pos.y + 2 * scale * Math.sin(angle), 0);
 
                 var index = Math.floor(t * this.swingingAnimation.length);
                 if (index >= this.swingingAnimation.length) {
@@ -438,6 +457,7 @@ define([
         var leftCol = this.leftCol.check(this.pos.x, this.pos.y);
 
         if (this.skidding && (leftCol || rightCol)) {
+            // TODO: fix so you can skid jump next to a wall but not from only running straight into it
             this.skidding = false;
             this.emitter.disable();
         }
@@ -476,7 +496,7 @@ define([
 
         if (!this.swinging) {
             if (!this.idle && (this.moving || Math.abs(this.speed.x) > minAnimationSpeed)) {
-                var animation = this.animations[this.animation];
+                var animation = this.animations.run;
                 animation.scale = 1 + Math.abs(this.speed.x / 6);
                 animation.timer += d * animation.scale;
                 if (animation.timer > animation.duration) {
@@ -484,7 +504,13 @@ define([
                 }
                 this.graphic.setTile(animation.cycle[Math.floor(animation.cycle.length * animation.timer / animation.duration)]);
             } else {
-                this.graphic.setTile(0);
+                //this.graphic.setTile(0);
+                var animation = this.animations.idle;
+                animation.timer += d * animation.scale;
+                if (animation.timer > animation.duration) {
+                    animation.timer -= animation.duration;
+                }
+                this.graphic.setTile(animation.cycle[Math.floor(animation.cycle.length * animation.timer / animation.duration)]);
             }
         }
 
@@ -498,7 +524,7 @@ define([
         // reset movement
         this.moving = false;
 
-        this.graphic.position.set(this.pos.x + (this.flipped ? -1 / 8 : 0), this.pos.y, this.pos.z);
+        this.graphic.position.set(this.pos.x + (this.flipped ? -1 / 8 : 0) + this.spriteOffset.x, this.pos.y + this.spriteOffset.y, this.pos.z);
     };
 
     Bouncer.prototype.setRunning = function(bool) {

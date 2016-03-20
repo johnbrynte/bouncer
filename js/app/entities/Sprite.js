@@ -27,13 +27,20 @@ define([
         this.cols = image.width / spriteWidth;
         this.rows = image.height / spriteHeight;
 
-        var shape = new THREE.Shape();
+        this.flip = false;
+
+        /*var shape = new THREE.Shape();
         shape.moveTo(-width / 2, height / 2);
         shape.lineTo(-width / 2, -height / 2);
         shape.lineTo(width / 2, -height / 2);
         shape.lineTo(width / 2, height / 2);
         shape.lineTo(-width / 2, height / 2);
-        var geometry = new THREE.ShapeGeometry(shape);
+        var geometry = new THREE.ShapeGeometry(shape);*/
+
+        var geometry = new THREE.PlaneGeometry(1, 1);
+        geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, 0, 0));
+        this.cols = image.width / spriteWidth;
+        this.rows = image.height / spriteHeight;
 
         var texture = new THREE.Texture(image);
         texture.magFilter = THREE.NearestFilter;
@@ -65,6 +72,7 @@ define([
         this.castShadow = false;
         this.receiveShadow = false;
 
+
         this.setSize(width, height);
     };
 
@@ -91,11 +99,12 @@ define([
     Sprite.prototype.setTile = function(index) {
         var y = Math.floor(index / this.cols);
         var x = index - y * this.cols;
-        this.texture.offset.x = (x + 0.5) / this.cols;
-        this.texture.offset.y = 1 - (y + 1) / this.rows + 0.5 / this.rows;
+        this.texture.offset.x = (x + (this.flip ? 1 : 0)) / this.cols;
+        this.texture.offset.y = 1 - (y + 1) / this.rows;
     };
 
     Sprite.prototype.flipHorizontal = function(flip) {
+        this.flip = flip;
         this.texture.repeat.set((flip ? -1 : 1) / this.cols, 1 / this.rows);
     };
 
