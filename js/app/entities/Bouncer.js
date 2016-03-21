@@ -43,7 +43,7 @@ define([
     var maxJumpTime = 0.3;
 
     var swingTime = 1.2;
-    var swingMinTime = 0.4;
+    var swingMinTime = 0.45;
     var swingMinJumpTime = 0.05;
     var swingEndTime = 0.1;
     var swingLiftAcc = 120; // equal to gravity
@@ -101,12 +101,12 @@ define([
         //this.physic = new BoxCollider(1, 1);
         //this.graphic = assets.createRectangle(1, 1, 0xE3ECEC);
         //this.graphic = assets.createSprite(1, 1, assets.files["img/bouncer.png"]);
-        this.graphic = assets.createSprite(assets.files["img/bouncer_vector.png"], 1.7, 1.7, 64, 64);
+        this.graphic = assets.createSprite(assets.files["img/bouncer_vector_lines.png"], 1.7, 1.7, 64, 64);
         this.skidParticles = assets.createParticleEffect(0, 0);
         this.emitter = this.skidParticles.emitters[0];
         this.emitter.disable();
 
-        this.graphicHammer = assets.createSprite(assets.files["img/bouncer_vector.png"], 1.4, 1.4, 64, 64);
+        this.graphicHammer = assets.createSprite(assets.files["img/bouncer_vector_lines.png"], 1.4, 1.4, 64, 64);
         this.graphicHammer.setTile(3);
         this.graphic.add(this.graphicHammer);
         this.graphicHammer.visible = false;
@@ -193,6 +193,9 @@ define([
                 if (self.wallSliding) {
                     self.emitter.disable();
                     self.wallSliding = false;
+                }
+                if (self.swung) {
+                    self.swung = false;
                 }
             }
         }
@@ -325,7 +328,7 @@ define([
         }
 
         if (!this.skidding) {
-            if (this.onGround && this.acc.x != 0 && Math.abs(this.speed.x) > 9 && Math.sign(this.acc.x) != Math.sign(this.speed.x)) {
+            if (this.onGround && this.acc.x != 0 && Math.abs(this.speed.x) > 8 && Math.sign(this.acc.x) != Math.sign(this.speed.x)) {
                 //debug.log("skidding", this.acc.x, this.speed.x);
                 this.skidding = true;
                 this.skidDirection = Math.sign(this.speed.x);
@@ -366,7 +369,7 @@ define([
                 if (this.swingDirection > 0) {
                     angle = Math.PI * 3 / 4 - (2 * Math.PI * 6.5 / 4) * t;
                 } else {
-                    angle = (2 * Math.PI * 6.5 / 4) * t;
+                    angle = Math.PI * 3 / 8 + (2 * Math.PI * 6.5 / 4) * t;
                 }
                 if (active) {
                     tx = 1.5 * t * t;
@@ -376,7 +379,7 @@ define([
                     ty = 5 * (0.1 + 0.2 * t * t);
                 }
                 if (active) {
-                    this.applyForce(tx * 60 * Math.cos(angle), swingLiftAcc - 5 - t * 20 + ty * 300 * Math.sin(angle));
+                    this.applyForce(tx * 60 * Math.cos(angle), swingLiftAcc * Math.min(1, t * 60) + ty * 300 * Math.sin(angle));
                 } else {
                     this.applyForce(tx * 60 * Math.cos(angle), swingLiftAcc + ty * 200 * Math.sin(angle));
                 }
@@ -388,9 +391,10 @@ define([
                     scale = 1 - Math.pow(this.swingEndTimer / swingEndTime, 2);
                 }
                 scale = Math.max(scale, 0.01);
+                var qangle = Math.floor(angle * 2) / 2;
                 this.graphicHammer.scale.set(scale, scale, 1);
-                this.graphicHammer.position.set(Math.cos(angle) * 0.8, Math.sin(angle) * 0.8, 0);
-                this.graphicHammer.rotation.z = angle - Math.PI / 2;
+                this.graphicHammer.position.set(Math.cos(qangle) * 0.8, Math.sin(qangle) * 0.8, 0);
+                this.graphicHammer.rotation.z = qangle - Math.PI / 2;
                 this.graphicHammer.visible = true;
 
                 this.emitter.position.value = this.emitter.position.value.set(this.pos.x + 2 * scale * Math.cos(angle), this.pos.y + 2 * scale * Math.sin(angle), 0);
@@ -514,9 +518,10 @@ define([
             }
         }
 
-        /*if (this.wallSliding) {
-            this.graphic.setTile(1);
-        }*/
+        if (this.wallSliding) {
+            this.graphic.flipHorizontal(this.wallDirection > 0);
+            this.graphic.setTile(11);
+        }
 
         // reset acceleration
         this.acc.x = 0;
@@ -532,7 +537,7 @@ define([
     };
 
     Bouncer.prototype.swing = function() {
-        if (!this.onGround && !this.swung && !this.swinging && (this.jumpDelta >= swingMinJumpTime || this.speed.y < 0)) {
+        if (!this.onGround && !this.wallSliding && !this.swung && !this.swinging && (this.jumpDelta >= swingMinJumpTime || this.speed.y < 0)) {
             var dir = this.flipped ? -1 : 1;
             this.speed.x = 0;
             this.speed.y = 0;
@@ -564,16 +569,13 @@ define([
             this.jumpActive = true;
             this.jumpDelta = 0;
             this.activeGround = null;
-            if (!this.wallSliding) {
-                this.swung = false;
-            }
 
             var amount = 0.75 + 0.25 * Math.min(Math.abs(this.speed.x) / 40, 1);
-            if (this.skidding) {
+            /*if (this.skidding) {
                 this.speed.x = -this.skidDirection * 10;
                 amount *= 1.2;
                 this.skidTimer = 0;
-            }
+            }*/
             if (this.wallSliding) {
                 this.wallSliding = false;
                 this.wallJumping = true;

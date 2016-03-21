@@ -109,12 +109,12 @@ define([
             },
             color: {
                 value: [new THREE.Color(0.5, 0.5, 0.5), new THREE.Color()],
-                spread: new THREE.Vector3(1, 1, 1),
+                //spread: new THREE.Vector3(1, 1, 1),
             },
             size: {
-                value: [0.2, 0]
+                value: [0.5, 0]
             },
-            particleCount: 15
+            particleCount: 10
         });
         particleGroup.addEmitter(emitter);
         renderer.addParticleGroup(particleGroup);
