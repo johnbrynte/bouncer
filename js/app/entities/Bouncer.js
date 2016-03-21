@@ -8,7 +8,8 @@ define([
     "physics/constants",
     "physics/world",
     "physics/RayCollider",
-    "entities/Sprite"
+    "entities/Sprite",
+    "entities/ViewBox"
 ], function(
     THREE,
     p2,
@@ -19,7 +20,8 @@ define([
     constants,
     world,
     RayCollider,
-    Sprite
+    Sprite,
+    ViewBox
 ) {
 
     var idleSpeedLimit = 0.5;
@@ -131,6 +133,9 @@ define([
         this.physic.onEndContact(function(body) {
             console.log("end", body);
         });*/
+
+        this.viewbox = new ViewBox(-4, -1, 4, 6);
+        this.viewbox.setPos(-5, 1);
 
         this.lastCollision = null;
         this.leftCol = null;
@@ -281,11 +286,8 @@ define([
     };
 
     Bouncer.prototype.beginContact = function(body) {
-        console.log("begin", body);
         var aabb1 = this.physic.aabb;
         var aabb2 = body.aabb;
-        console.log(aabb1.lowerBound, aabb1.upperBound);
-        console.log(aabb2.lowerBound, aabb2.upperBound);
 
         var dy = aabb1.lowerBound[1] - aabb2.upperBound[1];
         var pos = this.physic.position;
@@ -329,7 +331,6 @@ define([
 
         if (!this.skidding) {
             if (this.onGround && this.acc.x != 0 && Math.abs(this.speed.x) > 8 && Math.sign(this.acc.x) != Math.sign(this.speed.x)) {
-                //debug.log("skidding", this.acc.x, this.speed.x);
                 this.skidding = true;
                 this.skidDirection = Math.sign(this.speed.x);
                 //this.graphic.material.color.setHex(0xE3aaaa);
@@ -339,7 +340,6 @@ define([
         } else {
             if (!this.moving || !this.onGround || Math.sign(this.acc.x) == this.skidDirection || Math.abs(this.speed.x) > 11) {
                 this.skidding = false;
-                //debug.log("");
                 //this.graphic.material.color.setHex(0xE3ECEC);
                 //this.graphic.material.needsUpdate = true;
                 //this.graphic.rotation.z = 0;
@@ -398,6 +398,7 @@ define([
                 this.graphicHammer.visible = true;
 
                 this.emitter.position.value = this.emitter.position.value.set(this.pos.x + 2 * scale * Math.cos(angle), this.pos.y + 2 * scale * Math.sin(angle), 0);
+                this.emitter.velocity.value = this.emitter.velocity.value.set(0, 0, 0);
 
                 var index = Math.floor(t * this.swingingAnimation.length);
                 if (index >= this.swingingAnimation.length) {
@@ -472,7 +473,6 @@ define([
         }
         this.leftInContact = leftCol;
         this.rightInContact = rightCol;
-        //debug.log(topCol ? 1 : 0, groundCol ? 1 : 0, leftCol ? 1 : 0, rightCol ? 1 : 0, this.wallSliding);
 
         if (this.onGround && !this.moving && Math.abs(this.speed.x) < idleSpeedLimit) {
             if (!this.idle) {
@@ -485,9 +485,11 @@ define([
 
         if (this.skidding) {
             this.emitter.position.value = this.emitter.position.value.set(this.pos.x + this.skidDirection * 0.5, this.pos.y - 0.4, 0);
+            this.emitter.velocity.value = this.emitter.velocity.value.set(this.skidDirection * 2, 2, 0);
         }
         if (this.wallSliding) {
             this.emitter.position.value = this.emitter.position.value.set(this.pos.x + this.wallDirection * 0.5, this.pos.y - 0.4, 0);
+            this.emitter.velocity.value = this.emitter.velocity.value.set(-this.wallDirection * 2, 2, 0);
         }
 
         if (this.skidTimer < skidTime) {
@@ -499,7 +501,10 @@ define([
         }
 
         if (!this.swinging) {
-            if (!this.idle && (this.moving || Math.abs(this.speed.x) > minAnimationSpeed)) {
+            if (!this.onGround) {
+                var djump = Math.floor(Math.min(0.999, this.jumpDelta * 2) * 3);
+                this.graphic.setTile(djump);
+            } else if (!this.idle && (this.moving || Math.abs(this.speed.x) > minAnimationSpeed)) {
                 var animation = this.animations.run;
                 animation.scale = 1 + Math.abs(this.speed.x / 6);
                 animation.timer += d * animation.scale;
@@ -530,6 +535,8 @@ define([
         this.moving = false;
 
         this.graphic.position.set(this.pos.x + (this.flipped ? -1 / 8 : 0) + this.spriteOffset.x, this.pos.y + this.spriteOffset.y, this.pos.z);
+
+        this.viewbox.update(this.pos.x, this.pos.y, this.bbox.width, this.bbox.height);
     };
 
     Bouncer.prototype.setRunning = function(bool) {

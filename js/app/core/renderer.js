@@ -9,7 +9,8 @@ define(["lib/three"], function(THREE) {
         remove: remove,
         render: render,
         update: update,
-        getChildren: getChildren
+        getChildren: getChildren,
+        setCameraPos: setCameraPos
     };
 
     var scene, camera, r;
@@ -32,7 +33,7 @@ define(["lib/three"], function(THREE) {
 
         scene = new THREE.Scene();
         camera = new THREE.OrthographicCamera(-self.width / 2, self.width / 2, self.height / 2, -self.height / 2, 1, 1000);
-        camera.position.set(0, 3, 10);
+        camera.position.set(0, 3, 20);
         camera.zoom = 32;
         camera.updateProjectionMatrix();
     }
@@ -62,6 +63,10 @@ define(["lib/three"], function(THREE) {
 
     function getChildren() {
         return scene.children;
+    }
+
+    function setCameraPos(x, y) {
+        camera.position.set(x, y, 20);
     }
 
 });

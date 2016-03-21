@@ -64,7 +64,8 @@ define([
 
         var geom = new THREE.ShapeGeometry(shape);
         var mesh = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({
-            color: color || 0x000000
+            color: color || 0x000000,
+            transparent: true
         }));
 
         renderer.add(mesh);
@@ -98,7 +99,7 @@ define([
                 value: 0.5
             },
             position: {
-                value: new THREE.Vector3(0, 0, 0)
+                value: new THREE.Vector3(0, 0, 10)
             },
             acceleration: {
                 value: new THREE.Vector3(0, -2, 0),
@@ -109,12 +110,12 @@ define([
             },
             color: {
                 value: [new THREE.Color(0.5, 0.5, 0.5), new THREE.Color()],
-                //spread: new THREE.Vector3(1, 1, 1),
+                spread: new THREE.Vector3(1, 1, 1),
             },
             size: {
                 value: [0.5, 0]
             },
-            particleCount: 10
+            particleCount: 15
         });
         particleGroup.addEmitter(emitter);
         renderer.addParticleGroup(particleGroup);

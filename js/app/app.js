@@ -65,7 +65,7 @@ define([
     });
 
     var delta = 0;
-    var block2;
+    var block2, block5;
 
     timer.onDraw(function() {
         renderer.render();
@@ -74,13 +74,14 @@ define([
         input.update();
 
         delta += d;
-        //block2.move(2 * Math.sin(delta * 2 * Math.PI / 2), 3 + 1 * Math.sin((delta * 2 + 2.5) * Math.PI / 2), d);
+        block2.move(block2.x, 1 + 1.5 * Math.sin(delta * 2 * Math.PI / 4), d);
+        block5.move(34 + 3 * Math.sin(delta * 2 * Math.PI / 5), block5.y, d);
 
         world.update(d);
 
         bouncer.update(d);
-        if (bouncer.pos.y < -8) {
-            bouncer.setPos(-12, 10);
+        if (bouncer.pos.y < -15) {
+            bouncer.setPos(-12, 2);
         }
 
         renderer.update(d);
@@ -95,13 +96,18 @@ define([
 
     function init() {
         bouncer = new Bouncer();
-        bouncer.setPos(-12, 10);
+        bouncer.setPos(-12, 2);
 
         var block1 = new Block(-10, -5, 5, 10, 0xddddddd);
-        //block2 = new Block(0, 3, 5, 2, 0xddddddd);
+        block2 = new Block(15, 3, 5, 1, 0xddddddd);
         //block2.rotate(0.3);
         var block3 = new Block(8, -4, 5, 14, 0xddddddd);
-        var block4 = new Block(-1, -5, 23, 4, 0xaaaaaa);
+        var block4 = new Block(6, -5, 43, 4, 0xaaaaaa);
+        block5 = new Block(25, -2, 5, 1, 0xdddddd);
+        var block6 = new Block(42, -5, 2, 4, 0xaaaaaa);
+        var block7 = new Block(48, -5, 1, 4, 0xaaaaaa);
+        var block8 = new Block(64, -5, 3, 4, 0xaaaaaa);
+        var block9 = new Block(87, -5, 7, 4, 0xaaaaaa);
 
         timer.start();
     }
